@@ -14,8 +14,13 @@ spring:
   h2:
     console:
       enabled: true
+  sql:
+    init:
+      data-locations:
+        - classpath:db/data.sql
   jpa:
     open-in-view: false
+    defer-datasource-initialization: true
     hibernate:
       ddl-auto: create
     properties:

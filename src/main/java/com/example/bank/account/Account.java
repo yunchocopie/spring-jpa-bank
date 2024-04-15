@@ -1,5 +1,7 @@
 package com.example.bank.account;
 
+import com.example.bank._core.errors.exception.Exception400;
+import com.example.bank._core.utils.MyFormatUtil;
 import com.example.bank.user.User;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -7,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
@@ -34,10 +37,20 @@ public class Account {
     private Boolean status; // true, false
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Timestamp createdAt;
+
+    // 출금
+    public void withdraw(Long amount) {
+        this.balance = this.balance - amount;
+    }
+
+    // 입금
+    public void deposit(Long amount) {
+        this.balance = this.balance + amount;
+    }
 
     @Builder
-    public Account(Long id, User user, Integer number, String password, Long balance, Boolean status, LocalDateTime createdAt) {
+    public Account(Long id, User user, Integer number, String password, Long balance, Boolean status, Timestamp createdAt) {
         this.id = id;
         this.user = user;
         this.number = number;
@@ -45,5 +58,14 @@ public class Account {
         this.balance = balance;
         this.status = status;
         this.createdAt = createdAt;
+    }
+
+    public void lackCheck(Long amount) {
+        if (balance < amount) {
+            Long lackAmount = balance - amount;
+            lackAmount = Math.abs(lackAmount);
+
+            throw new Exception400("출금할 잔액이 부족합니다 : " + MyFormatUtil.moneyFormat(lackAmount));
+        }
     }
 }

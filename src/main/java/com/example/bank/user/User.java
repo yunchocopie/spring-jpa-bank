@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
@@ -22,10 +23,10 @@ public class User {
     private String fullname;
 
     @CreationTimestamp // pc -> db (날짜주입)
-    private LocalDateTime createdAt;
+    private Timestamp createdAt;
 
     @Builder
-    public User(Integer id, String username, String password, String fullname, LocalDateTime createdAt) {
+    public User(Integer id, String username, String password, String fullname, Timestamp createdAt) {
         this.id = id;
         this.username = username;
         this.password = password;

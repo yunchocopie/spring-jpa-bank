@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
@@ -36,10 +37,10 @@ public class History {
     private Long receiverBalance; // 받는이 잔액
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Timestamp createdAt;
 
     @Builder
-    public History(Long id, Account sender, Account receiver, Long amount, Long senderBalance, Long receiverBalance, LocalDateTime createdAt) {
+    public History(Long id, Account sender, Account receiver, Long amount, Long senderBalance, Long receiverBalance, Timestamp createdAt) {
         this.id = id;
         this.sender = sender;
         this.receiver = receiver;

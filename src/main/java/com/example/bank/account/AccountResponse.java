@@ -3,10 +3,31 @@ package com.example.bank.account;
 import com.example.bank.history.History;
 import lombok.Data;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AccountResponse {
+
+    // 계좌 이체 응답 화면
+    @Data
+    public static class TransferDTO {
+        private Long historyId;
+        private Integer senderNumber;
+        private Integer receiverNumber;
+        private Long amount;
+        private Long myBalance; // 보낸이 잔액
+        private Timestamp createdAt;
+
+        public TransferDTO(History history) {
+            this.historyId = history.getId();
+            this.senderNumber = history.getSender().getNumber();
+            this.receiverNumber = history.getReceiver().getNumber();
+            this.amount = history.getAmount();
+            this.myBalance = history.getSenderBalance();
+            this.createdAt = history.getCreatedAt();
+        }
+    }
 
     // 계좌 상세보기 화면
     @Data

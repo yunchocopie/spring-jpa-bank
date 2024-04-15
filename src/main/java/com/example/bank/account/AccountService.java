@@ -1,10 +1,12 @@
 package com.example.bank.account;
 
+import com.example.bank._core.errors.exception.Exception400;
 import com.example.bank._core.errors.exception.Exception403;
 import com.example.bank._core.errors.exception.Exception404;
 import com.example.bank.history.History;
 import com.example.bank.history.HistoryRepository;
 import com.example.bank.user.SessionUser;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -31,5 +33,53 @@ public class AccountService {
 
         List<History> historyList = historyRepository.findBySenderOrReceiver(number);
         return new AccountResponse.DetailDTO(account, historyList, number);
+    }
+
+    @Transactional
+    public AccountResponse.TransferDTO 계좌이체(AccountRequest.TransferDTO reqDTO, SessionUser sessionUser) {
+        // 1. 출금계좌와 입금계좌가 동일하면 안됨
+        if(reqDTO.getSenderNumber().equals(reqDTO.getReceiverNumber())){
+            throw new Exception400("동일 계좌로 이체할 수 없습니다");
+        }
+
+        // 2. 0원 이하는 들어오면 안됨
+        if(reqDTO.getAmount() <= 0){
+            throw new Exception400("0원이하 금액은 이체할 수 없습니다");
+        }
+
+        // 3. 입금출 계좌 조회
+        Account senderAccount = accountRepository.findByNumber(reqDTO.getSenderNumber())
+                .orElseThrow(() -> new Exception404("출금 계좌가 존재하지 않습니다"));
+        Account receiverAccount = accountRepository.findByNumber(reqDTO.getReceiverNumber())
+                .orElseThrow(() -> new Exception404("입금 계좌가 존재하지 않습니다"));
+
+        // 4. 출금 소유자 확인
+        if(senderAccount.getUser().getId() != sessionUser.getId()){
+            throw new Exception403("출금계좌의 주인이 아닙니다");
+        }
+
+        // 5. 출금 계좌 비번 확인
+        if(!senderAccount.getPassword().equals(reqDTO.getSenderPassword())){
+            throw new Exception403("출금 계좌 비밀번호가 틀렸습니다");
+        }
+
+        // 6. 잔액 검증
+        senderAccount.lackCheck(reqDTO.getAmount());
+
+        // 7. 계좌 상태 변경
+        senderAccount.withdraw(reqDTO.getAmount());
+        receiverAccount.deposit(reqDTO.getAmount());
+
+        // 8. 계좌 이체 히스토리 기록 (히스토리 기록은 반드시 계좌 상태 변경 후에 해야함)
+        History history = History.builder()
+                .sender(senderAccount)
+                .receiver(receiverAccount)
+                .amount(reqDTO.getAmount())
+                .senderBalance(senderAccount.getBalance())
+                .receiverBalance(receiverAccount.getBalance())
+                .build();
+
+        historyRepository.save(history);
+        return new AccountResponse.TransferDTO(history);
     }
 }
